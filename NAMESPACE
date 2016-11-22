@@ -1,0 +1,3 @@
+useDynLib(SFS)
+importFrom(Rcpp, evalCpp)
+exportPattern("^[[:alpha:]]+")

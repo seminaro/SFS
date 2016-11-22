@@ -1,0 +1,5 @@
+*~
+.Rhistory
+SFS_*.tar.gz
+*.o
+*.so
