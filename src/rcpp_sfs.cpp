@@ -86,19 +86,28 @@ sfs__dist_to_SpMat(SEXP E) {
 static
 SFSMatrix::SpMat *
 sfs__dataframe_to_SpMat(SEXP E) {
+    Rcpp::DataFrame D = Rcpp::as<Rcpp::DataFrame>(E);
     // if it has 3 columns assume they're (row, col, val) format
     // ... and fill an SpMat.
-    size_t num_rows = ??;
-    
+    size_t num_cols = D.size();
+    if(num_cols!=3) {
+        throw std::runtime_error("sfs algorithm can only deal with 3-column dataframes");
+    }
+
+    size_t num_rows = D.nrows();
+    Rcpp::IntegerVector rowidx = D[0];
+    Rcpp::IntegerVector colidx = D[1];
+    Rcpp::NumericVector value = D[2];
+            
     arma::umat locations(2,num_rows);
     arma::vec  values(num_rows);
-    for(size_t k=0; k<rowidx.size(); k++) {
+    for(size_t k=0; k<num_rows; k++) {
         locations(0,k) = rowidx[k];
         locations(1,k) = colidx[k];
         values(k) = value[k];
     }
 
-    throw std::runtime_error("sfs__dataframe_to_SpMat() Unimplemented");
+    return new SFSMatrix::SpMat(locations,values,true);
 }
 
 
