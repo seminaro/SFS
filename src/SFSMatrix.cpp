@@ -20,13 +20,15 @@
    R-integration (C) 2016 Utz-Uwe Haus, Cray EMEA Research Lab.
 */
 
-#define DEBUG
+//#define DEBUG
 
-// for some reason we need to include the RcppArmadillo header here, despite not using
-// any of its functionality: otherwise accessing arma::SpMat objects fails in the functions
-// implemented here, while it works for those which are defined in the SFSMatrix.h file
+#if !defined SFSMATRIX_USED_OUTSIDE_R
+// RcppArmadillo sets some armadillo defines in a nonstandard way.
+// Thus, all files using armadillo pieces need to be compiled with the
+// same configuration defines (RcppArmadill_Config.h) or else
 //     -- uuh Wed Nov 23 00:38:48 CET 2016 for armadillo 7.500.0 on OSx
 #include "RcppArmadillo.h"
+#endif
 
 #include "SFSMatrix.h"
 #include <assert.h>

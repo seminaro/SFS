@@ -86,6 +86,18 @@ sfs__dist_to_SpMat(SEXP E) {
 static
 SFSMatrix::SpMat *
 sfs__dataframe_to_SpMat(SEXP E) {
+    // if it has 3 columns assume they're (row, col, val) format
+    // ... and fill an SpMat.
+    size_t num_rows = ??;
+    
+    arma::umat locations(2,num_rows);
+    arma::vec  values(num_rows);
+    for(size_t k=0; k<rowidx.size(); k++) {
+        locations(0,k) = rowidx[k];
+        locations(1,k) = colidx[k];
+        values(k) = value[k];
+    }
+
     throw std::runtime_error("sfs__dataframe_to_SpMat() Unimplemented");
 }
 
