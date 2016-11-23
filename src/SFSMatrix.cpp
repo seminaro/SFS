@@ -22,7 +22,7 @@
 
 //#define DEBUG
 
-#if !defined SFSMATRIX_USED_OUTSIDE_R
+#if !defined(SFSMATRIX_USED_OUTSIDE_R)
 // RcppArmadillo sets some armadillo defines in a nonstandard way.
 // Thus, all files using armadillo pieces need to be compiled with the
 // same configuration defines (RcppArmadill_Config.h) or else

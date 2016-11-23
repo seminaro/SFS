@@ -1,0 +1,9 @@
+* add options to SFSMatrix constructor or solve() method
+* finish R data conversion for other input data types
+* Update README.md and DESCRIPTION:
+  ** how to build until we get into CRAN,
+  ** how to read file data
+* Update man/*.Rd docs, incl. examples for all input variants
+* check CRAN conformance https://cran.r-project.org/web/packages/policies.html
+* submit to CRAN https://cran.r-project.org/submit.html
+* check what we need for seriation package

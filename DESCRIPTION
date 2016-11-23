@@ -1,12 +1,21 @@
 Package: SFS
 Type: Package
-Title: Implements Similarity-First Search seriation algorithm
+Title: Implemention of Similarity-First Search Seriation Algorithm
 Version: 0.1
-Date: 2016-11-22
-Author: Matteo Seminaroti
+Date: 2016-11-223
+Authors@R: c(
+	   person("Matteo", "Seminaroti",
+	          role = c("aut", "cre", "cph"),
+		  email = "matteo.seminaroti@gmail.com"),
+	   person("Utz-Uwe", "Haus", role = c("ctb","cph"),
+	          email = "uhaus@cray.com"))
 Maintainer: Matteo Seminaroti <matteo.seminaroti@gmail.com>
-Description: More about what it does (maybe more than one line)
-License: GPL 3.0
+Description: Implements a simultaneous column and row reordering method
+             that is based on similarity-first search, for similarity or
+	     dissimilarity data. Robinsonian matrices will be recognized and
+	     reordered to become a Robinson matrix. Sparse matrices are
+	     handled efficiently.
+License: GPL-3
 Imports: Rcpp (>= 0.12.7)
 LinkingTo: Rcpp, RcppArmadillo
 SystemRequirements: C++11
