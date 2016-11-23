@@ -48,6 +48,24 @@ operator<< (std::ostream& os, const std::vector<T>& v)
 
 static
 SFSMatrix::SpMat *
+sfs__tripleform_to_SpMat(const std::vector<int>&    rowidx,
+                         const std::vector<int>&    colidx,
+                         const std::vector<double>& val) {
+    
+    // prepare batch insertion format for armadillo
+    arma::umat locations(2,rowidx.size());
+    arma::vec  values(rowidx.size());
+    for(size_t k=0; k<rowidx.size(); k++) {
+        locations(0,k) = rowidx[k];
+        locations(1,k) = colidx[k];
+        values(k) = val[k];
+    }
+
+    return new SFSMatrix::SpMat(locations,values,true);
+}
+
+static
+SFSMatrix::SpMat *
 sfs__matrix_to_SpMat(SEXP E) {
     Rcpp::NumericMatrix matrix(E);
 
@@ -64,23 +82,46 @@ sfs__matrix_to_SpMat(SEXP E) {
             }
         }
     }
-
-    // now prepare batch insertion format for armadillo
-    arma::umat locations(2,rowidx.size());
-    arma::vec  values(rowidx.size());
-    for(size_t k=0; k<rowidx.size(); k++) {
-        locations(0,k) = rowidx[k];
-        locations(1,k) = colidx[k];
-        values(k) = value[k];
-    }
-
-    return new SFSMatrix::SpMat(locations,values,true);
+    return sfs__tripleform_to_SpMat(rowidx,colidx,value);
 }
+
+// from seriation/src/lt.h:
+#ifndef LT_POS
+#define LT_POS(n, i, j)					\
+  (i)==(j) ? 0 : (i)<(j) ? n*((i)-1) - (i)*((i)-1)/2 + (j)-(i) -1	\
+        : n*((j)-1) - (j)*((j)-1)/2 + (i)-(j) -1
+#endif
 
 static
 SFSMatrix::SpMat *
-sfs__dist_to_SpMat(SEXP E) {
-    throw std::runtime_error("sfs__dist_to_SpMat() unimplemented");
+sfs__dist_to_SpMat(SEXP R_dist) {
+    // dist objects as used in the seriation package: lower-triangular,
+    // without diagonal elements. Typically rather dense; access via
+    // LT_POS(size,row_idx,col_idx) (1-based)
+    size_t length = LENGTH(R_dist);
+    int n = 1 + (int)sqrt(2*length);
+    if(length != n*(n-1)/2) {
+        throw std::runtime_error("dist object has invalid length");
+    }
+    const double *dist = REAL(R_dist);
+
+    std::vector<int> rowidx,colidx;
+    std::vector<double> value;
+    for(size_t row=0; row<n; row++) {
+        for(size_t col=0; col<row; col++) {
+            double v = dist[LT_POS(length,row+1,col+1)];
+            if(v!=0) {
+                rowidx.push_back(row);
+                colidx.push_back(col);
+                value.push_back(v);
+                // ... and symmetric copy
+                rowidx.push_back(col);
+                rowidx.push_back(row);
+                value.push_back(v);
+            }
+        }
+    }
+    return sfs__tripleform_to_SpMat(rowidx,colidx,value);
 }
 
 static
@@ -98,7 +139,8 @@ sfs__dataframe_to_SpMat(SEXP E) {
     Rcpp::IntegerVector rowidx = D[0];
     Rcpp::IntegerVector colidx = D[1];
     Rcpp::NumericVector value = D[2];
-            
+
+    
     arma::umat locations(2,num_rows);
     arma::vec  values(num_rows);
     for(size_t k=0; k<num_rows; k++) {
@@ -124,11 +166,11 @@ sfs(SEXP E) {
     SFSMatrix::SpMat *M;
     
     if(Rf_isMatrix(E)) {
-        std::cerr << "Found a matrix " <<std::endl;
         M = sfs__matrix_to_SpMat(E);
     } else if(Rf_inherits(E, "data.frame")) {
-        std::cerr << "Found a DataFrame " << std::endl;
         M = sfs__dataframe_to_SpMat(E);
+    } else if(Rf_inherits(E, "dist")) {
+        M = sfs__dist_to_SpMat(E);
     } else {
         std::cerr << "Unsupported argument type to rcpp_sfs()" << std::endl;
     }
