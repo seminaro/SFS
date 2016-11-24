@@ -7,13 +7,14 @@
 using namespace Rcpp;
 
 // sfs
-arma::Row<int> sfs(SEXP dissimilarity);
-RcppExport SEXP SFS_sfs(SEXP dissimilaritySEXP) {
+arma::Row<int> sfs(SEXP dissimilarity, double zero_eps);
+RcppExport SEXP SFS_sfs(SEXP dissimilaritySEXP, SEXP zero_epsSEXP) {
 BEGIN_RCPP
     Rcpp::RObject rcpp_result_gen;
     Rcpp::RNGScope rcpp_rngScope_gen;
     Rcpp::traits::input_parameter< SEXP >::type dissimilarity(dissimilaritySEXP);
-    rcpp_result_gen = Rcpp::wrap(sfs(dissimilarity));
+    Rcpp::traits::input_parameter< double >::type zero_eps(zero_epsSEXP);
+    rcpp_result_gen = Rcpp::wrap(sfs(dissimilarity, zero_eps));
     return rcpp_result_gen;
 END_RCPP
 }

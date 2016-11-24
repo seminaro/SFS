@@ -5,11 +5,13 @@
   The Similarity-First Search package exports one function.
 }
 \usage{
-sfs(dissimilarity)
+sfs(dissimilarity,zero_eps = 1e-200)
 }
 \arguments{
   \item{dissimilarity}{a matrix, a dist object, a sparse Matrix, or a
     3-column data frame}
+  \item{zero_eps}{a numeric value that determines when values in
+    \code{dissimilarity} are to be considered \code{0}}
 }
 \value{
   \code{sfs()} returns a (row) vector of 0-based integers specifying the 
@@ -61,7 +63,7 @@ sfs(dissimilarity)
   x <- as.matrix(iris[-5]);
   x <- x[sample(1:nrow(x)),];
   d <- dist(x)
-  SFS::sfs(d)
+  SFS::sfs(d,zero_eps=0.01)
 
   # you can also use 3-column data-frames, with (row, col, value) triples 
   data <- c("1 1 1.0",

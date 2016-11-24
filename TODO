@@ -5,5 +5,6 @@
   ** how to read file data
 * Update man/*.Rd docs, incl. examples for all input variants
 * check CRAN conformance https://cran.r-project.org/web/packages/policies.html
+  ** mostly done: devtools::check("../SFS") no longer complains
 * submit to CRAN https://cran.r-project.org/submit.html
 * check what we need for seriation package

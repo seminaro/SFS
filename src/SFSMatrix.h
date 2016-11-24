@@ -266,7 +266,7 @@ public:
     //SFS routines
     void Robinson(IntVector& pi);
     int multisweep(IntVector& pi_opt);
-    bool isReversed(IntVector& sigma_inv, IntVector& sigma_loop); //cehck if two permutation are reversed
+    bool isReversed(IntVector& sigma_inv, IntVector& sigma_loop); //check if two permutation are reversed
     data_type isEpsilon_Robinson(); //check if the given matrix is epsilon Robinson (only connected comp)
     data_type check_isEpsilon_Robinson();
     

@@ -163,13 +163,17 @@ sfs__dataframe_to_SpMat(SEXP E, const double zero_eps) {
 //                         (column names are ignored)
 //            'Matrix', sparse matrices from the Matrix package
 //            'dist', lower-triangular distance matrices as used in the seriation package
+// Optional arguments:
+//  zero_eps -- a numeric value that determines which entries are considered 0
+//              (default: 1.0e-200)
+//  
 
 // [[Rcpp::export]]
 arma::Row<int>
-sfs(SEXP dissimilarity) {
+sfs(SEXP dissimilarity,
+    double zero_eps = 1.0e-200) {
     SFSMatrix::SpMat *M;
     // when to consider an entry zero. Should be a parameter to sfs call.
-    const double zero_eps=1.0e-200; // this should catch most noise for now
     
     if(Rf_isMatrix(dissimilarity)) {
         M = sfs__matrix_to_SpMat(dissimilarity,zero_eps);
