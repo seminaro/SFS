@@ -3,3 +3,4 @@
 SFS_*.tar.gz
 *.o
 *.so
+SFS.Rcheck

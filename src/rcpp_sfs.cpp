@@ -162,17 +162,17 @@ sfs__dataframe_to_SpMat(SEXP E) {
 
 // [[Rcpp::export]]
 arma::Row<int>
-sfs(SEXP E) {
+sfs(SEXP dissimilarity) {
     SFSMatrix::SpMat *M;
     
-    if(Rf_isMatrix(E)) {
-        M = sfs__matrix_to_SpMat(E);
-    } else if(Rf_inherits(E, "data.frame")) {
-        M = sfs__dataframe_to_SpMat(E);
-    } else if(Rf_inherits(E, "dist")) {
-        M = sfs__dist_to_SpMat(E);
+    if(Rf_isMatrix(dissimilarity)) {
+        M = sfs__matrix_to_SpMat(dissimilarity);
+    } else if(Rf_inherits(dissimilarity, "data.frame")) {
+        M = sfs__dataframe_to_SpMat(dissimilarity);
+    } else if(Rf_inherits(dissimilarity, "dist")) {
+        M = sfs__dist_to_SpMat(dissimilarity);
     } else {
-        std::cerr << "Unsupported argument type to rcpp_sfs()" << std::endl;
+        throw std::runtime_error("Unsupported argument type to rcpp_sfs()");
     }
 
     if(M->n_cols!=M->n_rows) {

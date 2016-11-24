@@ -22,16 +22,9 @@
 
 //#define DEBUG
 
-#if !defined(SFSMATRIX_USED_OUTSIDE_R)
-// RcppArmadillo sets some armadillo defines in a nonstandard way.
-// Thus, all files using armadillo pieces need to be compiled with the
-// same configuration defines (RcppArmadill_Config.h) or else
-//     -- uuh Wed Nov 23 00:38:48 CET 2016 for armadillo 7.500.0 on OSx
-#include "RcppArmadillo.h"
-#endif
 
 #include "SFSMatrix.h"
-#include <assert.h>
+
 #include <limits>
 #include <iostream>
 #include <sstream>
@@ -500,14 +493,14 @@ void SFSMatrix::print_adjacency_list_tau(SpMat& A)
     int n = A.n_rows;
     for (int i=0; i < n; ++i)
     {
-        std::cout << "node " << i << " edges ";
+        SFSout << "node " << i << " edges ";
         for(SpMat::iterator it = A.begin_col(i); it != A.end_col(i); ++it)
         {
-            std::cout << "(" << it.row() << "," << *it << ") ";
+            SFSout << "(" << it.row() << "," << *it << ") ";
         }
-        std::cout << std::endl;
+        SFSout << std::endl;
     }
-    std::cout << std::endl;
+    SFSout << std::endl;
 }
 
 void SFSMatrix::print_adjacency_list_nominal()
@@ -515,14 +508,14 @@ void SFSMatrix::print_adjacency_list_nominal()
     int n = _A.n_rows;
     for (int i=0; i < n; ++i)
     {
-        std::cout << "node " << _tau_inv[i].nominal << " edges ";
+        SFSout << "node " << _tau_inv[i].nominal << " edges ";
         for(SpMat::iterator it = _A.begin_col(i); it != _A.end_col(i); ++it)
         {
-            std::cout << "(" << _tau_inv[it.row()].nominal << "," << *it << ") ";
+            SFSout << "(" << _tau_inv[it.row()].nominal << "," << *it << ") ";
         }
-        std::cout << std::endl;
+        SFSout << std::endl;
     }
-    std::cout << std::endl;
+    SFSout << std::endl;
 }
 
 
@@ -547,32 +540,26 @@ void SFSMatrix::check_tau()
 bool SFSMatrix::is_Robinson(SpMat& A)
 {
     // check rows
-    for (int i = 0; i < _n-1; ++i)
-    {
-        for (int j = i + 1; j < _n; ++j)
-        {
-            if (A(i,j - 1) < A(i,j))
-            {
-                std::cout << "the matrix is not Robinson (rows)." << std::endl;
-                std::cerr << "A[" << i << "][" << j-1 << "] = "
-                << A(i,j-1) << " < " << "A[" << i << "][" << j
-                << "] = " << A(i,j) << std::endl;
+    for (int i = 0; i < _n-1; ++i) {
+        for (int j = i + 1; j < _n; ++j) {
+            if (A(i,j - 1) < A(i,j)) {
+                SFSout << "the matrix is not Robinson (rows)." << std::endl;
+                SFSout << "A[" << i << "][" << j-1 << "] = "
+                       << A(i,j-1) << " < " << "A[" << i << "][" << j
+                       << "] = " << A(i,j) << std::endl;
                 return false;
             }
         }
     }
     
     // check columns
-    for (int j = 1; j < _n; ++j)
-    {
-        for (int i = 1; i < j; ++i)
-        {
-            if (A(i - 1,j) > A(i,j))
-            {
-                std::cout << "the matrix is not Robinson (columns)." << std::endl;
-                std::cerr << "A[" << i-1 << "][" << j << "] = "
-                << A(i-1,j) << " > " << "A[" << i << "][" << j
-                << "] = " << A(i,j) << std::endl;
+    for (int j = 1; j < _n; ++j) {
+        for (int i = 1; i < j; ++i) {
+            if (A(i - 1,j) > A(i,j)) {
+                SFSout << "the matrix is not Robinson (columns)." << std::endl;
+                SFSout << "A[" << i-1 << "][" << j << "] = "
+                       << A(i-1,j) << " > " << "A[" << i << "][" << j
+                       << "] = " << A(i,j) << std::endl;
                 return false;
             }
         }
@@ -583,21 +570,20 @@ bool SFSMatrix::is_Robinson(SpMat& A)
 bool SFSMatrix::is_permutation(IntVector& pi)
 {
     std::vector<bool> perm (pi.size(),false);
-    for (int i = 0; i < pi.size(); ++i)
-    {
+    for (int i = 0; i < pi.size(); ++i) {
         perm[pi[i]] = true;
     }
-    for (int i = 0; i < pi.size(); ++i)
-    {
-        if (!perm[i])
-        {
-            std::cout << "Linear order is not a permutation" << std::endl;
+    
+    for (int i = 0; i < pi.size(); ++i) {
+        if (!perm[i]) {
+            SFSout << "Linear order is not a permutation" << std::endl;
             return false;
         }
     }
-    if (pi.size() != _n)
-    {
-        std::cout << "permutation has a different size from the problem size" << std::endl;
+    
+    if (pi.size() != _n) {
+        SFSout << "permutation has a different size from the problem size"
+               << std::endl;
         return false;
     }
 
@@ -608,16 +594,13 @@ bool SFSMatrix::is_symmetric(SpMat& A)
 {
     int n = A.n_rows;
     
-    for (int i = 0; i < n - 1; ++i)
-    {
-        for (int j = i + 1; j < n; ++j)
-        {
-            if (A(i,j) != A(j,i))
-            {
-                std::cout << "the matrix is not symmetric." << std::endl;
-                std::cerr << "A[" << i << "][" << j << "] = "
-                << A(i,j) << " != " << "A[" << j << "][" << i
-                << "] = " << A(j,i) << std::endl;
+    for (int i = 0; i < n - 1; ++i) {
+        for (int j = i + 1; j < n; ++j) {
+            if (A(i,j) != A(j,i)) {
+                SFSout << "the matrix is not symmetric." << std::endl;
+                SFSout << "A[" << i << "][" << j << "] = "
+                       << A(i,j) << " != " << "A[" << j << "][" << i
+                       << "] = " << A(j,i) << std::endl;
                 return false;
             }
         }
@@ -629,13 +612,13 @@ void SFSMatrix::print_vertices_properties()
 {
     for (int i = 0; i < _n; ++i)
     {
-        std::cout << "node " << _tau_inv[i].nominal << ": ";
-        std::cout << "tau " << i << ": ";
-        std::cout << "visited = " << _tau_inv[i].visited << ", ";
-        std::cout << "neighbor = " << _tau_inv[i].neighbor << ". ";
-        std::cout << std::endl;
+        SFSout << "node " << _tau_inv[i].nominal << ": ";
+        SFSout << "tau " << i << ": ";
+        SFSout << "visited = " << _tau_inv[i].visited << ", ";
+        SFSout << "neighbor = " << _tau_inv[i].neighbor << ". ";
+        SFSout << std::endl;
     }
-    std::cout << std::endl;
+    SFSout << std::endl;
 }
 
 void SFSMatrix::print_permutation (IntVector& pi, string& file)
@@ -686,7 +669,7 @@ void SFSMatrix::print_log (clock_t& t)
             }
         }
     }
-    std::cout << "The bandwidth is: " << b << std::endl;
+    SFSout << "The bandwidth is: " << b << std::endl;
 
     //compute envelope
     int env = 0;
@@ -704,7 +687,7 @@ void SFSMatrix::print_log (clock_t& t)
             }
         }
     }
-    std::cout << "The envelope is: " << env << std::endl;
+    SFSout << "The envelope is: " << env << std::endl;
     
 }
 

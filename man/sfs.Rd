@@ -1,28 +1,34 @@
-\name{Rcpp-SFS-Functions}
-\alias{rcp_sfs}
-\title{Functions in RcppSFS package}
+\name{SFS-Functions}
+\alias{sfs}
+\title{Functions in SFS package}
 \description{
   The Similarity-First Search package exports one function.
 }
 \usage{
-rcpp_sfs(m)
+sfs(dissimilarity)
 }
 \arguments{
-  \item{m}{a matrix}
+  \item{dissimilarity}{a matrix, a dist object, a sparse Matrix, or a
+    3-column data frame}
 }
 \value{
-  \code{rcp_sfs()} returns a numeric vector specifying the 
-  permutation of the input matrix \code{m} computed.
+  \code{sfs()} returns a (row) vector of 0-based integers specifying the 
+  permutation computed to bring the dissimilarity matrix
+  \code{dissimilarity} to Robinson form, or close to it if it is not
+  Robinsonian.
 }
 \details{
-  The 
-  These are example functions which should be largely
-  self-explanatory. Their main benefit is to demonstrate how to write a
-  function using the Armadillo C++ classes, and to have to such a
-  function accessible from R.
+  \code{sfs()} is the only function currently exported to R.
 }
 \references{
-  See the paper of Laurent and Seminaroti.
+  M. Seminaroti. (2016): Combinatorial algorithms for the seriation
+  problem. \emph{PhD thesis}, 1--209.
+  
+  M. Laurent, M. Seminaroti. (2015): A Lex-BFS-based recognition
+  algorithm for Robinsonian matrices. \emph{Algorithms and Complexity:
+  9th International Conference, CIAC 2015, Paris, France, May 20-22,
+  2015}. 325--338.
+
 }
 \examples{
   # install.packages("SFS_0.1.tar.gz")
@@ -46,8 +52,8 @@ rcpp_sfs(m)
          "2 10 2 0 9 0 8 6 10 0 6 0 5 2 0 0 11 0 8",
          "0 0 0 9 0 5 0 0 0 5 0 10 0 0 10 4 0 11 0",
          "5 8 5 0 10 0 9 7 8 0 7 0 7 5 0 0 8 0 11")
-  M <- as.matrix(read.table(textConnection(mtxt)))
-  SFS::sfs(M)
+  m <- as.matrix(read.table(textConnection(mtxt)))
+  SFS::sfs(m)
 }
 \author{Matteo Seminaroti (sfs) and Utz-Uwe Haus (R wrapping)}
 

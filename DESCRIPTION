@@ -11,11 +11,14 @@ Authors@R: c(
 	          email = "uhaus@cray.com"))
 Maintainer: Matteo Seminaroti <matteo.seminaroti@gmail.com>
 Description: Implements a simultaneous column and row reordering method
-             that is based on similarity-first search, for similarity or
-	     dissimilarity data. Robinsonian matrices will be recognized and
-	     reordered to become a Robinson matrix. Sparse matrices are
-	     handled efficiently.
+    that is based on similarity-first search, for similarity or
+    dissimilarity data. Robinsonian matrices will be recognized and
+    reordered to become a Robinson matrix. Sparse matrices are
+    handled efficiently.
 License: GPL-3
-Imports: Rcpp (>= 0.12.7)
+Encoding: UTF-8
+Imports:
+    Rcpp (>= 0.12.7)
 LinkingTo: Rcpp, RcppArmadillo
 SystemRequirements: C++11
+RoxygenNote: 5.0.1

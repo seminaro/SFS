@@ -21,8 +21,38 @@
    R integration (C) 2016 Utz-Uwe Haus, Cray EMEA Research Lab.
 */
 
+// if you want to use SFSMatrix.[h,cpp] outside of the R integration, add
+// -D SFSMATRIX_USED_OUTSIDE_R=1 to your compiler arguments
+
 #ifndef SFSMATRIX_H
 #define SFSMATRIX_H
+
+
+#if !defined(SFSMATRIX_USED_OUTSIDE_R)
+// RcppArmadillo sets some armadillo defines in a nonstandard way.
+// Thus, all files using armadillo pieces need to be compiled with the
+// same configuration defines (RcppArmadill_Config.h) or else
+//     -- uuh Wed Nov 23 00:38:48 CET 2016 for armadillo 7.500.0 on OSx
+#include "RcppArmadillo.h"
+// we are not allowed to use cout/cerr in CRAN uploads:
+#define SFSout Rcpp::Rcout
+// we are not allowed to use assert. Fake it:
+#define sfs_assert_thrower(x,file,line)                                 \
+    do {                                                                \
+        if(!(x))                                                        \
+            throw std::runtime_error(#file ":" #line                    \
+                                     " Assertion failed : "             \
+                                     " -- " #x );                       \
+    } while(0)
+
+#define assert(x) sfs_assert_thrower((x),__FILE__, __LINE__)
+    
+#else // building outside R:
+#include <iostream>
+#define SFSout std::cout
+#include <assert.h>
+#endif
+
 
 #include <vector>
 #include <ostream>
@@ -30,7 +60,6 @@
 #include <string>
 #include <fstream>
 #include <limits>
-#include <assert.h>
 #include <random>
 #include <list>
 #include <armadillo>
@@ -91,40 +120,6 @@ class SFSMatrix
     
     
     //class functions
-  public:
-    // SFSMatrix(SpMat& A)
-    // : _A()
-    // , _n()
-    // , _m()
-    // , _tau_inv()
-    // , _binary()
-    // , _file_name()
-    // , _coco()
-    // , _epsilon()
-    // {
-    //   assert(A.n_rows==A.n_cols);
-    //   std::cerr << A << std::endl;
-    //     _A = A;
-    //     std::cerr << "copied input" <<std::endl;
-    //     _n = _A.n_rows;
-    //     _m = _A.n_nonzero;
-    //     _epsilon = 0;
-    //     _binary = binary();
-    //     _tau_inv.resize(_n);
-    //     std::cerr << "resized" <<std::endl;
-    //     VertexProperty vp;
-        
-    //     for (int i = 0; i < _n; ++i)
-    //     {
-    //         vp.nominal = i;
-    //         vp.visited = false;
-    //         vp.neighbor = false;
-    //         _tau_inv[i] = vp;
-    //     }
-    //     std::cerr << "vp filled" <<std::endl;
-
-    // }
-
   public:
     SFSMatrix::SpMat read(const std::string& file) {
         SFSMatrix::IntVector row, column;

@@ -1,0 +1,5 @@
+^SFS_.*\.tar\.gz$
+^LICENSE$
+^input$
+^tst$
+^SFS.check$
