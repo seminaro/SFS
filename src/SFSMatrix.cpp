@@ -137,8 +137,8 @@ int SFSMatrix::multisweep(IntVector& pi_opt)
         for (int i = 0; i < _n; ++i)
         {
             pi_opt.push_back(_tau_inv[i].nominal);
-            return 0;
         }
+        return 0;
     }
     
     int max_sweep= _n;
