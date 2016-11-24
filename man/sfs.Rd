@@ -54,6 +54,27 @@ sfs(dissimilarity)
          "5 8 5 0 10 0 9 7 8 0 7 0 7 5 0 0 8 0 11")
   m <- as.matrix(read.table(textConnection(mtxt)))
   SFS::sfs(m)
+
+  # if you have the seriation package at hand:
+  library(seriation)
+  data("iris");
+  x <- as.matrix(iris[-5]);
+  x <- x[sample(1:nrow(x)),];
+  d <- dist(x)
+  SFS::sfs(d)
+
+  # you can also use 3-column data-frames, with (row, col, value) triples 
+  data <- c("1 1 1.0",
+            "2 1 1.5",
+            "3 1 1.9",
+            "1 2 2.0",
+            "2 2 2.5",
+            "3 2 2.9",
+            "1 3 3.0",
+            "2 3 3.5",
+            "3 3 3.9")
+  m <- read.table(textConnection(data))
+  SFS::sfs(m)
 }
 \author{Matteo Seminaroti (sfs) and Utz-Uwe Haus (R wrapping)}
 

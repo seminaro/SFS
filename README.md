@@ -9,16 +9,21 @@ Similarity-First Search
 If you change any interface wrapping C++ code for R, regenerate
 the wrapper code by 
 
-	library(Rcpp)
-	compileAttributes() 
-
+```R
+	R> library(Rcpp)
+	R> compileAttributes() 
+```
 
 and if you change the set of exported functions (or import from other packages)
 
-	library(devtools)
-	devtools::document("../SFS")
+```R
+	R> library(devtools)
+	R> devtools::document("../SFS")
+```
 
 To prepare a CRAN upload, do
 
-	library(devtools)
-	devtools::check("../SFS")
+```R
+	R> library(devtools)
+	R> devtools::check("../SFS")
+```

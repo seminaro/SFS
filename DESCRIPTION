@@ -19,6 +19,7 @@ License: GPL-3
 Encoding: UTF-8
 Imports:
     Rcpp (>= 0.12.7)
+Suggests: seriation
 LinkingTo: Rcpp, RcppArmadillo
 SystemRequirements: C++11
 RoxygenNote: 5.0.1

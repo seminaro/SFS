@@ -66,7 +66,7 @@ sfs__tripleform_to_SpMat(const std::vector<int>&    rowidx,
 
 static
 SFSMatrix::SpMat *
-sfs__matrix_to_SpMat(SEXP E) {
+sfs__matrix_to_SpMat(SEXP E, const double zero_eps) {
     Rcpp::NumericMatrix matrix(E);
 
     // since we don't know the number of nonzeros we first convert everything into triple format:
@@ -75,7 +75,7 @@ sfs__matrix_to_SpMat(SEXP E) {
     for(size_t row=0; row<matrix.nrow(); row++) {
         for(size_t col=0; col<matrix.ncol(); col++) {
             double v = matrix(row,col);
-            if(v!=0) {
+            if(fabs(v)>zero_eps) {
                 rowidx.push_back(row);
                 colidx.push_back(col);
                 value.push_back(v);
@@ -85,19 +85,21 @@ sfs__matrix_to_SpMat(SEXP E) {
     return sfs__tripleform_to_SpMat(rowidx,colidx,value);
 }
 
-// from seriation/src/lt.h:
+// from seriation/src/lt.h: col/row 1-based
 #ifndef LT_POS
-#define LT_POS(n, i, j)					\
-  (i)==(j) ? 0 : (i)<(j) ? n*((i)-1) - (i)*((i)-1)/2 + (j)-(i) -1	\
-        : n*((j)-1) - (j)*((j)-1)/2 + (i)-(j) -1
+#define LT_POS(n, col, row)					\
+    (col)==(row) ? 0                                            \
+          : (col)<(row)                                         \
+                  ? n*((col)-1) - (col)*((col)-1)/2 + (row)-(col) -1    \
+                  : n*((row)-1) - (row)*((row)-1)/2 + (col)-(row) -1
 #endif
 
 static
 SFSMatrix::SpMat *
-sfs__dist_to_SpMat(SEXP R_dist) {
+sfs__dist_to_SpMat(SEXP R_dist, const double zero_eps) {
     // dist objects as used in the seriation package: lower-triangular,
     // without diagonal elements. Typically rather dense; access via
-    // LT_POS(size,row_idx,col_idx) (1-based)
+    // LT_POS(size,col_idx,row_idx) (1-based)
     size_t length = LENGTH(R_dist);
     int n = 1 + (int)sqrt(2*length);
     if(length != n*(n-1)/2) {
@@ -107,26 +109,27 @@ sfs__dist_to_SpMat(SEXP R_dist) {
 
     std::vector<int> rowidx,colidx;
     std::vector<double> value;
-    for(size_t row=0; row<n; row++) {
-        for(size_t col=0; col<row; col++) {
-            double v = dist[LT_POS(length,row+1,col+1)];
-            if(v!=0) {
+    for(size_t col=0; col<n; col++) {
+        for(size_t row=0; row<col; row++) {
+            double v = dist[LT_POS(n,col+1,row+1)];
+            if(fabs(v)>zero_eps) {
                 rowidx.push_back(row);
                 colidx.push_back(col);
                 value.push_back(v);
                 // ... and symmetric copy
                 rowidx.push_back(col);
-                rowidx.push_back(row);
+                colidx.push_back(row);
                 value.push_back(v);
             }
         }
     }
+
     return sfs__tripleform_to_SpMat(rowidx,colidx,value);
 }
 
 static
 SFSMatrix::SpMat *
-sfs__dataframe_to_SpMat(SEXP E) {
+sfs__dataframe_to_SpMat(SEXP E, const double zero_eps) {
     Rcpp::DataFrame D = Rcpp::as<Rcpp::DataFrame>(E);
     // if it has 3 columns assume they're (row, col, val) format
     // ... and fill an SpMat.
@@ -140,6 +143,7 @@ sfs__dataframe_to_SpMat(SEXP E) {
     Rcpp::IntegerVector colidx = D[1];
     Rcpp::NumericVector value = D[2];
 
+    // FIXME: kill entries below ZERO_EPS threshold
     
     arma::umat locations(2,num_rows);
     arma::vec  values(num_rows);
@@ -164,15 +168,25 @@ sfs__dataframe_to_SpMat(SEXP E) {
 arma::Row<int>
 sfs(SEXP dissimilarity) {
     SFSMatrix::SpMat *M;
+    // when to consider an entry zero. Should be a parameter to sfs call.
+    const double zero_eps=1.0e-200; // this should catch most noise for now
     
     if(Rf_isMatrix(dissimilarity)) {
-        M = sfs__matrix_to_SpMat(dissimilarity);
+        M = sfs__matrix_to_SpMat(dissimilarity,zero_eps);
     } else if(Rf_inherits(dissimilarity, "data.frame")) {
-        M = sfs__dataframe_to_SpMat(dissimilarity);
-    } else if(Rf_inherits(dissimilarity, "dist")) {
-        M = sfs__dist_to_SpMat(dissimilarity);
+        M = sfs__dataframe_to_SpMat(dissimilarity,zero_eps);
     } else {
-        throw std::runtime_error("Unsupported argument type to rcpp_sfs()");
+        // some object
+        Rcpp::RObject o(dissimilarity);
+        if(o.inherits("dist")) {
+            M = sfs__dist_to_SpMat(dissimilarity,zero_eps);
+        } else {
+            std::string c = o.hasAttribute("class")
+                    ? "(class " + Rcpp::as<std::string>(o.attr("class")) +")"
+                    : "(no class)";
+            std::string errmsg = "sfs(): unknown object " + c + " in dissimilarity argument";
+            throw std::runtime_error(errmsg);
+        }
     }
 
     if(M->n_cols!=M->n_rows) {
