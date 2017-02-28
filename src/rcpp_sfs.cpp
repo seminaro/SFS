@@ -47,42 +47,24 @@ operator<< (std::ostream& os, const std::vector<T>& v)
 }
 
 static
-SFSMatrix::SpMat *
-sfs__tripleform_to_SpMat(const std::vector<int>&    rowidx,
-                         const std::vector<int>&    colidx,
-                         const std::vector<double>& val) {
+Rcpp::DataFrame
+sfs__matrix_to_DataFrame(SEXP E, const double zero_eps) {
     
-    // prepare batch insertion format for armadillo
-    arma::umat locations(2,rowidx.size());
-    arma::vec  values(rowidx.size());
-    for(size_t k=0; k<rowidx.size(); k++) {
-        locations(0,k) = rowidx[k];
-        locations(1,k) = colidx[k];
-        values(k) = val[k];
-    }
-
-    return new SFSMatrix::SpMat(locations,values,true);
-}
-
-static
-SFSMatrix::SpMat *
-sfs__matrix_to_SpMat(SEXP E, const double zero_eps) {
+    //create a numeric matrix to read SEXP and create 3-columns Data Frame
     Rcpp::NumericMatrix matrix(E);
-
-    // since we don't know the number of nonzeros we first convert everything into triple format:
-    std::vector<int> rowidx,colidx;
-    std::vector<double> value;
+    Rcpp::IntegerVector rowidx,colidx;
+    Rcpp::NumericVector value;
     for(size_t row=0; row<matrix.nrow(); row++) {
         for(size_t col=0; col<matrix.ncol(); col++) {
             double v = matrix(row,col);
-            if(fabs(v)>zero_eps) {
-                rowidx.push_back(row);
-                colidx.push_back(col);
+            if(row!= col && fabs(v)>zero_eps) {
+                rowidx.push_back(row+1);
+                colidx.push_back(col+1);
                 value.push_back(v);
             }
         }
     }
-    return sfs__tripleform_to_SpMat(rowidx,colidx,value);
+    return Rcpp::DataFrame::create(Rcpp::Named("V1")=rowidx,Rcpp::Named("V2")=colidx,Rcpp::Named("V3")=value);
 }
 
 // from seriation/src/lt.h: col/row 1-based
@@ -95,8 +77,8 @@ sfs__matrix_to_SpMat(SEXP E, const double zero_eps) {
 #endif
 
 static
-SFSMatrix::SpMat *
-sfs__dist_to_SpMat(SEXP R_dist, const double zero_eps) {
+Rcpp::DataFrame
+sfs__dist_to_DataFrame(SEXP R_dist, const double zero_eps) {
     // dist objects as used in the seriation package: lower-triangular,
     // without diagonal elements. Typically rather dense; access via
     // LT_POS(size,col_idx,row_idx) (1-based)
@@ -107,83 +89,143 @@ sfs__dist_to_SpMat(SEXP R_dist, const double zero_eps) {
     }
     const double *dist = REAL(R_dist);
 
-    std::vector<int> rowidx,colidx;
-    std::vector<double> value;
+    Rcpp::IntegerVector rowidx,colidx;
+    Rcpp::NumericVector value;
     for(size_t col=0; col<n; col++) {
         for(size_t row=0; row<col; row++) {
             double v = dist[LT_POS(n,col+1,row+1)];
-            if(fabs(v)>zero_eps) {
-                rowidx.push_back(row);
-                colidx.push_back(col);
+            if(row!= col && fabs(v)>zero_eps) {
+                rowidx.push_back(row+1);
+                colidx.push_back(col+1);
                 value.push_back(v);
-                // ... and symmetric copy
-                rowidx.push_back(col);
-                colidx.push_back(row);
+                // add symmetric edges
+                rowidx.push_back(col+1);
+                colidx.push_back(row+1);
                 value.push_back(v);
             }
         }
     }
 
-    return sfs__tripleform_to_SpMat(rowidx,colidx,value);
+    return Rcpp::DataFrame::create(Rcpp::Named("V1")=rowidx,Rcpp::Named("V2")=colidx,Rcpp::Named("V3")=value);
 }
 
 static
-SFSMatrix::SpMat *
-sfs__dataframe_to_SpMat(SEXP E, const double zero_eps) {
+Rcpp::DataFrame
+sfs__dataframe_to_DataFrame(SEXP E, const double zero_eps, bool symmetric, bool identical_val) {
     Rcpp::DataFrame D = Rcpp::as<Rcpp::DataFrame>(E);
-    // if it has 3 columns assume they're (row, col, val) format
-    // ... and fill an SpMat.
     size_t num_cols = D.size();
-    if(num_cols!=3) {
-        throw std::runtime_error("sfs algorithm can only deal with 3-column dataframes");
-    }
-
     size_t num_rows = D.nrows();
-    Rcpp::IntegerVector rowidx = D[0];
-    Rcpp::IntegerVector colidx = D[1];
-    Rcpp::NumericVector value = D[2];
-
-    // FIXME: kill entries below ZERO_EPS threshold
+    Rcpp::IntegerVector rowidx,colidx;
+    Rcpp::NumericVector value;
     
-    arma::umat locations(2,num_rows);
-    arma::vec  values(num_rows);
-    for(size_t k=0; k<num_rows; k++) {
-        locations(0,k) = rowidx[k];
-        locations(1,k) = colidx[k];
-        values(k) = value[k];
+    if(num_cols==3)  //3 columns assume they're (row, col, val) format
+    {
+        Rcpp::IntegerVector df_rowidx = D[0];
+        Rcpp::IntegerVector df_colidx = D[1];
+        Rcpp::NumericVector df_value = D[2];
+        for(size_t k=0; k<num_rows; k++)
+        {
+            if (df_rowidx[k]!= df_colidx[k] && fabs(df_value[k]) > zero_eps)
+            {
+                rowidx.push_back(df_rowidx[k]);
+                colidx.push_back(df_colidx[k]);
+                value.push_back(df_value[k]);
+                if (symmetric && !identical_val) //then add symmetric edges
+                {
+                    rowidx.push_back(df_colidx[k]);
+                    colidx.push_back(df_rowidx[k]);
+                    value.push_back(df_value[k]);
+                }
+                
+                //eliminate identical values (otherwise problems with spMat)
+//                if (identical_val) //then add symmetric edges
+//                {
+//                    int i = 0;
+//                    int j = 0;
+//                    while (i < rowidx.size() -1)
+//                    {
+//                        j = i + 1;
+//                        while (j < rowidx.size())
+//                        {
+//                            if (rowidx[i] == rowidx[j] && colidx[i] == colidx[j])
+//                            {
+//                                rowidx.erase(rowidx.begin()+j);
+//                                colidx.erase(colidx.begin()+j);
+//                            }
+//                            else
+//                            {
+//                                j++;
+//                            }
+//                        }
+//                        i++;
+//                    }
+//                }
+            }
+        }
     }
-
-    return new SFSMatrix::SpMat(locations,values,true);
+    else //more than 3 columns assume that is a matrix format
+    {
+        for(size_t i=0; i<num_rows; i++)
+        {
+            for(size_t j=0; j<num_rows; j++)
+            {
+                Rcpp::NumericVector df_rowidx = D[i];
+                if (i != j && fabs(df_rowidx[j]) > zero_eps)
+                {
+                    rowidx.push_back(i+1);
+                    colidx.push_back(j+1);
+                    value.push_back(df_rowidx[j]);
+                }
+            }
+        }
+    }
+    return Rcpp::DataFrame::create(Rcpp::Named("V1")=rowidx,Rcpp::Named("V2")=colidx,Rcpp::Named("V3")=value);
 }
 
-
-// exported functionality: Run SFS on various input data formats.
+
+// exported functionality: Read different input data formats and conver it to 3-columns (row,col,val) 'data frame'
 // We support 'matrix', the dense numeric format
-//            'dataframe', which is assumed to have 3 columns (row-index, col-index, value)
-//                         (column names are ignored)
+//            'dataframe', which can be also used to read from file
 //            'Matrix', sparse matrices from the Matrix package
-//            'dist', lower-triangular distance matrices as used in the seriation package
+//            'dist', lower-triangular distance matrices as used in the seriation package,
 // Optional arguments:
-//  zero_eps -- a numeric value that determines which entries are considered 0
+// data -- a representation of the (similarity or dissimilarity) between pairs of objects.
+// zero_epsilon -- a numeric value that determines which entries are considered 0.
 //              (default: 1.0e-200)
-//  
+// symmetric -- a boolean value equal to TRUE is the input matrix is symmetric.
+//              (default: TRUE)
+// identical_val -- a boolean value equal to TRUE if the data is a 3-columns data frame and symmetric edges are included.
+//              (default = TRUE)
+
 
 // [[Rcpp::export]]
-arma::Row<int>
-sfs(SEXP dissimilarity,
-    double zero_eps = 1.0e-200) {
-    SFSMatrix::SpMat *M;
-    // when to consider an entry zero. Should be a parameter to sfs call.
+Rcpp::DataFrame
+read(SEXP data,
+    double zero_epsilon = 1.0e-200,
+    bool symmetric = true,
+    bool identical_val = false) {
+    Rcpp::DataFrame M;
     
-    if(Rf_isMatrix(dissimilarity)) {
-        M = sfs__matrix_to_SpMat(dissimilarity,zero_eps);
-    } else if(Rf_inherits(dissimilarity, "data.frame")) {
-        M = sfs__dataframe_to_SpMat(dissimilarity,zero_eps);
-    } else {
+    //if data is not symmetric, I do not have to add symmetric edges
+    if(symmetric == false)
+    {
+        if (identical_val == true)
+        {
+            SFSout << "warning: identical_val is set to TRUE because the matrix is not symmetric." << std::endl;
+        }
+        identical_val = true;
+    }
+    
+    //read data and create SpMat object
+    if(Rf_isMatrix(data)) {
+        M = sfs__matrix_to_DataFrame(data,zero_epsilon);
+    } else if(Rf_inherits(data, "data.frame")) {
+        M = sfs__dataframe_to_DataFrame(data, zero_epsilon, symmetric, identical_val);
+    }else {
         // some object
-        Rcpp::RObject o(dissimilarity);
-        if(o.inherits("dist")) {
-            M = sfs__dist_to_SpMat(dissimilarity,zero_eps);
+        Rcpp::RObject o(data);
+        if (o.inherits("dist")) {
+            M = sfs__dist_to_DataFrame(data,zero_epsilon);
         } else {
             std::string c = o.hasAttribute("class")
                     ? "(class " + Rcpp::as<std::string>(o.attr("class")) +")"
@@ -192,16 +234,67 @@ sfs(SEXP dissimilarity,
             throw std::runtime_error(errmsg);
         }
     }
-
-    if(M->n_cols!=M->n_rows) {
-        throw std::runtime_error("Input matrix must be square");
-    }
-
-    SFSMatrix S(*M);
-
-    arma::Row<int> permutation(S.solve());
     
-    delete M;
+    return M;
+}
 
+// exported functionality: solve SFS given a 3-columns (row,col,val) 'data frame'
+// Optional arguments:
+// matrix -- a 3-columns data frame with symmetric entries, representing the list of all similarities (or dissimilarities) between the pairs of objects to reorder.
+// zero_sfs -- a numeric value that determines the threshold for entries of being considered the same.
+//              (default: 1.0e-200)
+// dissimilarity -- a boolean value equal to TRUE is the input data is a dissimilarity.
+//              (default: FALSE)
+// Robinsonian -- a boolean value equal to TRUE is one wants to recognize a Robinsonian matrix
+//              (default: FALSE)
+// num_sweeps -- an integer value that determines how many iterations of SFS shall be repeated.
+//              (default: 4)
+
+
+// [[Rcpp::export]]
+arma::Row<int>
+sfs(SEXP matrix,
+    double sfs_epsilon = 0,
+    bool dissimilarity = false,
+    bool Robinsonian = false,
+    int num_sweeps = 4) {
+    
+    //check parameters bounds
+    if (num_sweeps <= 0)
+    {
+        throw std::runtime_error("number of sweeps must be strictly bigger than zero");
+    }
+    if (sfs_epsilon < 0)
+    {
+        throw std::runtime_error("the SFS-epsilon cannot be negative");
+    }
+    
+    //check if input matrix is a "data frame" with three columns
+    if (!Rf_inherits(matrix, "data.frame"))
+    {
+        throw std::runtime_error("The input must be a data frame.");
+    }
+    Rcpp::DataFrame M = Rcpp::as<Rcpp::DataFrame>(matrix);
+    if (M.size() != 3)
+    {
+        throw std::runtime_error("The data frame must have 3 columns. Preprocess the data throught the read() function first.");
+    }
+    
+    // prepare batch insertion format for armadillo
+    std::vector<int> rowidx = M[0];
+    std::vector<int> colidx = M[1];
+    std::vector<double> val = M[2];
+    arma::umat locations(2,rowidx.size());
+    arma::vec  values(rowidx.size());
+    for(size_t k=0; k<rowidx.size(); k++) {
+        locations(0,k) = rowidx[k];
+        locations(1,k) = colidx[k];
+        values(k) = val[k];
+    }
+    
+    SFSMatrix::SpMat A = SFSMatrix::SpMat(locations,values,true);
+    SFSMatrix S(A,sfs_epsilon, dissimilarity, Robinsonian, num_sweeps); //create objects SFSMatrix
+    arma::Row<int> permutation(S.solve()); //run SFS
+    
     return permutation;
 }

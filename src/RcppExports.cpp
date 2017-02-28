@@ -6,15 +6,32 @@
 
 using namespace Rcpp;
 
-// sfs
-arma::Row<int> sfs(SEXP dissimilarity, double zero_eps);
-RcppExport SEXP SFS_sfs(SEXP dissimilaritySEXP, SEXP zero_epsSEXP) {
+// read
+Rcpp::DataFrame read(SEXP data, double zero_epsilon, bool symmetric, bool identical_val);
+RcppExport SEXP SFS_read(SEXP dataSEXP, SEXP zero_epsilonSEXP, SEXP symmetricSEXP, SEXP identical_valSEXP) {
 BEGIN_RCPP
     Rcpp::RObject rcpp_result_gen;
     Rcpp::RNGScope rcpp_rngScope_gen;
-    Rcpp::traits::input_parameter< SEXP >::type dissimilarity(dissimilaritySEXP);
-    Rcpp::traits::input_parameter< double >::type zero_eps(zero_epsSEXP);
-    rcpp_result_gen = Rcpp::wrap(sfs(dissimilarity, zero_eps));
+    Rcpp::traits::input_parameter< SEXP >::type data(dataSEXP);
+    Rcpp::traits::input_parameter< double >::type zero_epsilon(zero_epsilonSEXP);
+    Rcpp::traits::input_parameter< bool >::type symmetric(symmetricSEXP);
+    Rcpp::traits::input_parameter< bool >::type identical_val(identical_valSEXP);
+    rcpp_result_gen = Rcpp::wrap(read(data, zero_epsilon, symmetric, identical_val));
+    return rcpp_result_gen;
+END_RCPP
+}
+// sfs
+arma::Row<int> sfs(SEXP matrix, double sfs_epsilon, bool dissimilarity, bool Robinsonian, int num_sweeps);
+RcppExport SEXP SFS_sfs(SEXP matrixSEXP, SEXP sfs_epsilonSEXP, SEXP dissimilaritySEXP, SEXP RobinsonianSEXP, SEXP num_sweepsSEXP) {
+BEGIN_RCPP
+    Rcpp::RObject rcpp_result_gen;
+    Rcpp::RNGScope rcpp_rngScope_gen;
+    Rcpp::traits::input_parameter< SEXP >::type matrix(matrixSEXP);
+    Rcpp::traits::input_parameter< double >::type sfs_epsilon(sfs_epsilonSEXP);
+    Rcpp::traits::input_parameter< bool >::type dissimilarity(dissimilaritySEXP);
+    Rcpp::traits::input_parameter< bool >::type Robinsonian(RobinsonianSEXP);
+    Rcpp::traits::input_parameter< int >::type num_sweeps(num_sweepsSEXP);
+    rcpp_result_gen = Rcpp::wrap(sfs(matrix, sfs_epsilon, dissimilarity, Robinsonian, num_sweeps));
     return rcpp_result_gen;
 END_RCPP
 }

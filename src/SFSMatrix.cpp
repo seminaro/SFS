@@ -52,30 +52,6 @@ bool SFSMatrix::binary(void)
 }
 
 
-void SFSMatrix::SerialRank()
-{
-  arma::SpMat<data_type> R(_n,_n);
-    arma::umat locations(2,_A.n_nonzero);
-    vec values(_A.n_nonzero);
-    for (int i=0; i < _n; ++i)
-    {
-        for (int j= 0; j < _n; ++j)
-        {
-            int S_ij = 0;
-            for (int k= 0; k < _n; ++k)
-            {
-                if (_A(i,k) != 0 && _A(j,k) != 0)
-                {
-                    S_ij++;
-                }
-            }
-            R(i,j) = S_ij;
-        }
-    }
-    _A= R;
-
-}
-
 // template <typename data_type>
 typename SFSMatrix::IntVector 
 SFSMatrix::solve()
@@ -83,15 +59,38 @@ SFSMatrix::solve()
     IntVector pi;
     WeakLinearOrder Phi;
     SpMat A = _A; //original matrix
-    clock_t t = clock();
+    _t = clock();
     Robinson(pi);
-    t = clock() - t;
+    _t = clock() - _t;
     _A = A;
-    return pi;
     
-//    print_permutation(pi,_file_name); //add also Phi to input (in case pi.size = 0)
-//    print_ordered_matrix(pi, _file_name);
-//    print_log(t);
+    bool one_based = false;
+    //check if the nighborhood of 0 (dummy node) is empty
+    if (_A.begin_col(0) == _A.end_col(0))
+    {
+        one_based = true;
+    }
+    
+    //check if pi is a Robinson ordering
+    if(_Robinsonian)
+    {
+        print_ordered_matrix(pi, _file_name);
+    }
+    
+    //if the data is 1-based, remove from pi the element 0
+    if(one_based)
+    {
+        for(int i=0; i<_n;++i)
+        {
+            if (pi[i] == 0)
+            {
+                pi.erase(pi.begin()+i);
+                break;
+            }
+        }
+    }
+    
+    return pi;
 }
 
 void SFSMatrix::Robinson(IntVector& pi)
@@ -102,7 +101,7 @@ void SFSMatrix::Robinson(IntVector& pi)
     
     if (CC.size() > 1) {
       SpMat A;
-      SFSMatrix G(A);
+      SFSMatrix G(A,_epsilon, _dissimilarity, _Robinsonian, _max_sweeps);
       for (block_iterator cc_it = CC.begin(); cc_it != CC.end(); ++cc_it)
       {
         subgraph(*cc_it, G);
@@ -134,7 +133,7 @@ int SFSMatrix::multisweep(IntVector& pi_opt)
         return 0;
     }
     
-    int max_sweep= _n;
+    int max_sweep = _max_sweeps;
     for (int k = 1; k <= max_sweep; ++k)
     {
         
@@ -218,6 +217,9 @@ void SFSMatrix::subgraph(Block& cc_it, SFSMatrix& G)
     G._tau_inv.resize(G._n);
     G._binary = _binary;
     G._epsilon = _epsilon;
+    G._Robinsonian = _Robinsonian;
+    G._max_sweeps = _max_sweeps;
+    G._dissimilarity = _dissimilarity;
     for (int k = 0; k < G._n; ++k)
     {
         G._tau_inv[k] = _tau_inv[i];
@@ -307,11 +309,18 @@ SFSMatrix::WeakLinearOrder SFSMatrix::Neighborhood (int p)
     
     if (!L.empty())
     {
-        L.sort(sortByHighest());
+        if (_dissimilarity)
+        {
+            L.sort(sort_dissimilarity());
+        }
+        else
+        {
+            L.sort(sort_similarity());
+        }
         data_type b = std::numeric_limits<data_type>::max();
         for(neighborhood::iterator n_it = L.begin(); n_it != L.end(); ++n_it)
         {
-            if (b - n_it->second > _epsilon)
+            if (std::abs(b - n_it->second) > _epsilon)
             {
                 N.emplace_back();
                 b = n_it->second;
@@ -388,14 +397,19 @@ SFSMatrix::data_type SFSMatrix::isEpsilon_Robinson()
     IntVector row_i_1 (1); //dummy initialization
     data_type epsilon = 0;
     
-    
     for (int i = 0; i < _n-1; ++i)
     {
-        
         //create current row
         SpMat::iterator it = _A.end_col(i);
-        it--;
-        int tau = it.row();
+        int tau;
+        if (it == _A.begin_col(i)) //avoid to check Robinson property for empty nodes
+        {
+            tau = i;
+        }
+        else{
+            it--;
+            tau = it.row();
+        }
         int rmn = std::max(0,tau-i); //rightmost vertex adjacent to vertex _tau_inv[i]
         IntVector row_i(rmn,0); //create row for vertex i
         
@@ -417,18 +431,30 @@ SFSMatrix::data_type SFSMatrix::isEpsilon_Robinson()
         //check if the row_i and row_i_1 are Robinson
         for (int j = row_i.size()-1; j >= 0; --j)
         {
+            nominal_value = row_i[j];
             if (j < row_i.size()-1)
             {
-                nominal_value = row_i[j];
-                row_i[j] = std::max(row_i[j],row_i[j+1]);
-                epsilon = std::max(epsilon, row_i[j] - nominal_value);
-                
+                if (_dissimilarity)
+                {
+                    row_i[j] = std::min(row_i[j],row_i[j+1]);
+                }
+                else
+                {
+                    row_i[j] = std::max(row_i[j],row_i[j+1]);
+                }
+                epsilon = std::max(epsilon, std::abs(row_i[j] - nominal_value));
             }
             if (i > 0 && j < row_i_1.size())
             {
-                nominal_value = row_i[j];
-                row_i[j] = std::max(row_i[j],row_i_1[j]);
-                epsilon = std::max(epsilon, row_i[j] - nominal_value);
+                if (_dissimilarity)
+                {
+                    row_i[j] = std::min(row_i[j],row_i_1[j]);
+                }
+                else
+                {
+                    row_i[j] = std::max(row_i[j],row_i_1[j]);
+                }
+                epsilon = std::max(epsilon, std::abs(row_i[j] - nominal_value));
             }
         }
         
@@ -644,50 +670,17 @@ void SFSMatrix::print_permutation (IntVector& pi, string& file)
     myfile.close();
 }
 
-void SFSMatrix::print_log (clock_t& t)
+void SFSMatrix::print_log (string& file)
 {
     std::ofstream myfile;
-    myfile.open("../../output/logs_"+_file_name);
+    myfile.open("../../output/logs_"+file);
     
     //common part
     myfile << _A.n_rows << " = number of vertices \n";
     myfile << _A.n_nonzero << " = number of edges \n";
     myfile << _coco << " = number of connected components \n";
-    myfile << ((float)t)/(CLOCKS_PER_SEC / 1000) << " = time (milliseconds) \n";
+    myfile << ((float)_t)/(CLOCKS_PER_SEC) << " = time (seconds) \n";
     myfile.close();
-    
-    //compute bandwidth
-    int b = 0;
-    for(int i = 0; i < _n; ++i)
-    {
-        for(int j = _n-1; j > i; --j)
-        {
-            if (_A(i,j) != 0)
-            {
-                b = std::max(b,j-i);
-                break;
-            }
-        }
-    }
-    SFSout << "The bandwidth is: " << b << std::endl;
-
-    //compute envelope
-    int env = 0;
-    for(int i = 0; i < _n; ++i)
-    {
-        for(int j = i+1; j < _n; ++j)
-        {
-            if (_A(i,j) == 0)
-            {
-                env++;
-            }
-            else
-            {
-                break;
-            }
-        }
-    }
-    SFSout << "The envelope is: " << env << std::endl;
     
 }
 
@@ -709,6 +702,16 @@ void SFSMatrix::print_ordered_matrix (IntVector& pi, string& file)
     }
 
     _A = Pi * _A * Pi.t();
+    if (!_dissimilarity)
+    {
+        if (_Robinsonian && isEpsilon_Robinson() > _epsilon)
+        {
+            SFSout << "the matrix is not Robinsonian" << std::endl;
+        }
+        else{
+            SFSout << "the matrix is Robinsonian" << std::endl;
+        }
+    }
     
 //    std::ofstream myfile;
 //    myfile.open("../../output/ordered_matrix_"+_file_name);

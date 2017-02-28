@@ -67,7 +67,7 @@
 
 class SFSMatrix
 {
-  public:
+public:
     //general types
     typedef double data_type;
     typedef std::size_t size_t;
@@ -96,10 +96,15 @@ class SFSMatrix
     //Neighborhood (for sorting the neighborhood)
     typedef std::pair<uword, data_type> neighbor; //neighbhor of a given pivot p (vertex + similarity)
     typedef std::list<neighbor> neighborhood; //list of neighbors
-
-    struct sortByHighest {
+    
+    struct sort_similarity {
         bool operator()(const neighbor& lhs, const neighbor& rhs) {
             return lhs.second > rhs.second;
+        }
+    };
+    struct sort_dissimilarity {
+        bool operator()(const neighbor& lhs, const neighbor& rhs) {
+            return lhs.second < rhs.second;
         }
     };
     
@@ -117,112 +122,30 @@ class SFSMatrix
         bool neighbor; //used to check if a vertex is adjacent to a vertex in the connected component
     };
     typedef std::vector<VertexProperty> permutation; //our map of vertices
+
     
-    
-    //class functions
-  public:
-    SFSMatrix::SpMat read(const std::string& file) {
-        SFSMatrix::IntVector row, column;
-        SFSMatrix::vector value;
-        std::ifstream myfile;
-        myfile.open(file);
-        SFSMatrix::string line;
-        if (myfile.is_open())
-        {
-            std::getline(myfile,line);
-            int size_line = std::count(line.begin(), line.end(), ' ');
-            if (size_line <= 3) //sparse format
-            {
-                while (!line.empty())
-                {
-                    std::stringstream ss(line);
-                    int r = -1;
-                    int c = -1;
-                    data_type v = -1;
-                    ss >> r;
-                    row.push_back(r-1);
-                    ss >> c;
-                    column.push_back(c-1);
-                    ss >> v;
-                    value.push_back(v-1);
-                    if (row.back() != column.back()) //add symmetric edges
-                    {
-                        row.push_back(c-1);
-                        column.push_back(r-1);
-                        value.push_back(v-1);
-                    }
-                    std::getline(myfile,line);
-                }
-            }
-            else //matrix format
-            {
-                int n = size_line;
-                for(int i =0; i < n; ++i)
-                {
-                    std::stringstream ss(line);
-                    int tmp = -1;
-                    for (int j = 0; j < n; ++j)
-                    {
-                        ss >> tmp;
-                        if (tmp > 0)
-                        {
-                            row.push_back(i);
-                            column.push_back(j);
-                            value.push_back(tmp);
-                        }
-                    }
-                    std::getline(myfile,line);
-                }
-            }
-        }
-        else {
-            throw std::runtime_error("The file could not be opened");
-        }
-    
-        //eliminate identical values
-        int i = 0;
-        int j = 0;
-    
-        while (i < row.size() -1)
-        {
-            j = i + 1;
-            while (j < row.size())
-            {
-                if (row[i] == row[j] && column[i] == column[j])
-                {
-                    row.erase(row.begin()+j);
-                    column.erase(column.begin()+j);
-                }
-                else
-                {
-                    j++;
-                }
-            }
-            i++;
-        }
-    
-        //create matrix
-        arma::umat locations(2,row.size());
-        SFSMatrix::vec values(row.size());
-        for (int k=0; k < row.size(); ++k)
-        {
-            locations(0,k) = row[k];
-            locations(1,k) = column[k];
-            values(k) = 1;//value[k];
-        }
-    
-        return SFSMatrix::SpMat(locations, values, true);
-    }
-  public:
-    SFSMatrix(const SpMat& A) {
+public:
+    SFSMatrix(const SpMat& A, double epsilon, bool dissimilarity, bool Robinsonian, int max_sweeps){
         _A = A;
-
+        
         assert(_A.n_rows==_A.n_cols);
-
+        
         _n = _A.n_rows;
         _m = _A.n_nonzero;
-        _epsilon = 0;
+        _epsilon = epsilon;
         _binary = binary();
+        _dissimilarity = dissimilarity;
+        _Robinsonian = Robinsonian;
+        
+        if (_Robinsonian)
+        {
+            _max_sweeps = _n - 1;
+        }
+        else
+        {
+            _max_sweeps = max_sweeps;
+        }
+        
         _tau_inv.resize(_n);
         VertexProperty vp;
         
@@ -234,7 +157,7 @@ class SFSMatrix
             _tau_inv[i] = vp;
         }
     }
-
+    
     //class variables
 protected:
     SpMat _A;
@@ -245,6 +168,10 @@ protected:
     string _file_name;
     int _coco;
     data_type _epsilon;
+    bool _Robinsonian; //true if Robinsonian recognition
+    int _max_sweeps;
+    bool _dissimilarity;
+    clock_t _t;
     
 public:
     //COMMON METHODS
@@ -260,7 +187,7 @@ public:
     void concatenate(WeakLinearOrder& Phi);
     IntVector WeakLinearOrder_to_IntVector(WeakLinearOrder& Phi, bool nominal);
     bool binary(); //check if the given matrix is binary or not
-
+    
     void SerialRank();
     
     //SFS routines
@@ -296,7 +223,7 @@ public:
     
     //printing files
     void print_permutation(IntVector& pi, string& file);
-    void print_log(clock_t& t);
+    void print_log(string& file);
     void print_ordered_matrix (IntVector& pi, string& file);
 };
 

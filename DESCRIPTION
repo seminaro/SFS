@@ -1,6 +1,6 @@
 Package: SFS
 Type: Package
-Title: Implemention of Similarity-First Search Seriation Algorithm
+Title: Similarity-First Search Seriation Algorithm
 Version: 0.1
 Date: 2016-11-223
 Authors@R: c(
@@ -10,11 +10,7 @@ Authors@R: c(
 	   person("Utz-Uwe", "Haus", role = c("ctb","cph"),
 	          email = "uhaus@cray.com"))
 Maintainer: Matteo Seminaroti <matteo.seminaroti@gmail.com>
-Description: Implements a simultaneous column and row reordering method
-    that is based on similarity-first search, for similarity or
-    dissimilarity data. Robinsonian matrices will be recognized and
-    reordered to become a Robinson matrix. Sparse matrices are
-    handled efficiently.
+Description: This packages includes the implementation of the Similarity-First Search algorithm (SFS), which is used to solve the seriation problem. Given a set of objects and their pairwise similarity (or dissimilarity), the seriation problem consists in finding a linear order (or \emph{ranking}) of the objects such that similar objects are ordered close to each other. Ideally, the goal would be to find a linear order \eqn{\pi} of the objects satisfying \eqn{A_{ij} \leq \min\{A_{ik}, A_{jk}\}} for each triple of objects \eqn{i <_{\pi} j <_{\pi} k}. One can visualize the data as a matrix whose rows/columns represent the objects to order and each entry represents the similarity (or dissimilarity) between the corresponding objects. Then a matrix satisfying the above property is called \emph{Robinsonian} (similarity) matrix, and \eqn{\pi} is referred as \emph{Robinson ordering}. In other words, a Robinsonian similarity (resp., dissimilarity) matrix can be reordered in such a way that the values are monotonically nondecreasing (resp., non increasing) when moving toward the diagonal. \cr Any similarity (or dissimilarity) matrix can be seen as adjacency matrix of a weighted graph, where each entry represents the similarity (or dissimilarity) between two nodes. Then, SFS represents a generalization to weighted graphs of Lexicographic Breadth-First Search (Lex-BFS), a variant to Breadth-First Search. At each iteration, the neighbourhood of the current node is sorted for increasing values (if the matrix is a similarity) or decreasing values (if the matrix is a dissimilarity). This induces a partial order of the unvisited vertices, which is refined with sorted neighbourhood or previously visited vertices. Finally, the next node to visit is the node with the highest similarity with respect to the current node, while respecting the similarity imposed by previous visited vertices. \cr Because SFS reduces to Lex-BFS when applied to binary matrices (or, equivalently, unweighted graphs), this library can be also considered for Lex-BFS applications such as graphs recognition (e.g., chordal and unit interval graphs). In fact, the SFS seriation algorithm implemented in this packaged is a multisweep algorithm which consists in repeating a finite number of SFS iterations (called \emph{sweeps}). If the data has a Robinsonian structure, then the ranking returned is a Robinson ordering. As the Robinsonian structure can be difficult to model, the ranking returned by the SFS algorithm can still be used as heuristic.\cr The package consists of two functions. The function \code{read()} takes as input the (similarity or dissimilarity) data between the objects to sort and builds a 3-columns \code{data frame}, which is then used as input for \code{SFS()} to return the ranking of the objects. This library is linked to \emph{Rcpp} and \emph{RcppArmadillo}.
 License: GPL-3
 Encoding: UTF-8
 Imports:
@@ -22,4 +18,4 @@ Imports:
 Suggests: seriation
 LinkingTo: Rcpp, RcppArmadillo
 SystemRequirements: C++11
-RoxygenNote: 5.0.1
+RoxygenNote: 6.0.1
