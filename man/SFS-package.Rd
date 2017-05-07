@@ -19,7 +19,7 @@ Maintainer: \packageMaintainer{SFS}
 \references{ 
 M. Laurent and M. Seminaroti. Similarity-First Search: a new algorithm with application to Robinsonian matrix recognition. \emph{arXiv:1601.03521}. 2016.
     
-M. Seminaroti. Combinatorial algorithms for the seriation problem. \emph{PhD thesis}. Center for Economic Research (CentER), Tilburg University, pages 1--209. 2016.
+M. Seminaroti. Combinatorial Algorithms for the Seriation Problem. \emph{PhD thesis}. School of Economics and Management, Tilburg University, pages 1--209. 2016.
 }
 
 %\keyword{ package }
