@@ -1,6 +1,7 @@
 # SFS
 Similarity-First Search
 
+Documentation is available for the R functions `SFS::read` and `SFS::sfs`.
 
 -------------------------------------------------------------------------------
 
@@ -27,3 +28,7 @@ To prepare a CRAN upload, do
 	R> library(devtools)
 	R> devtools::check("../SFS")
 ```
+
+and also consider uploading to
+[https://win-builder.r-project.org/upload.aspx](Win-Builder) to see if the code
+works on Windows.
