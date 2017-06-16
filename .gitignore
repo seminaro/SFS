@@ -5,3 +5,4 @@ SFS_*.tar.gz
 *.so
 SFS.Rcheck
 *.sw[oprst]
+.Rcheck
