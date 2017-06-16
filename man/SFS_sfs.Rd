@@ -1,5 +1,6 @@
-\name{SFS}
+\name{SFS_sfs}
 \alias{sfs}
+\alias{SFS_sfs}
 \title{Similarity-First Search multisweep algorithm}
 \description{
   Return a ranking of the objects such that similar objects are ordered close to each other. If the matrix is \emph{Robinsonian}, then the ranking returned is a \emph{Robinson ordering}. 

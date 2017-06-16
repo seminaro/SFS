@@ -1,6 +1,7 @@
-\name{Read}
+\name{SFS_read}
 \alias{read}
-\title{Read the input data}
+\alias{SFS_read}
+\title{Read similarity or dissimilarity input data}
 \description{
   Read the similarity (or dissimilarity) information between the objects that one wants to order and build a 3-columns \code{data frame}, where each row \eqn{(i, j, A_{ij})} represents the (dis)similarity \eqn{A_{ij}} between objects \eqn{i} and \eqn{j}. In case of symmetric data (i.e., \eqn{A_{ij} = A_{ji}}), only the entries for pairs \eqn{(i,j)} with \eqn{i<j} are listed.
 }

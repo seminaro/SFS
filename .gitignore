@@ -6,3 +6,6 @@ SFS_*.tar.gz
 SFS.Rcheck
 *.sw[oprst]
 .Rcheck
+.Rdata
+input
+..Rcheck
