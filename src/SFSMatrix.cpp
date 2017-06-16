@@ -203,7 +203,7 @@ void SFSMatrix::subgraph(Block& cc_it, SFSMatrix& G)
     uword j = cc_it.back();
     
     //create submatrix
-    if (cc_it.size() == _n)
+    if (cc_it.size() == (unsigned)_n)
     {
         G._A = _A;
     }
@@ -288,7 +288,7 @@ SFSMatrix::WeakLinearOrder SFSMatrix::Neighborhood (int p)
     }
     for(SpMat::iterator it = _A.begin_col(p); it != _A.end_col(p); ++it)
     {
-        if (it.row() != p && !_tau_inv[it.row()].visited)
+        if (it.row() != (unsigned)p && !_tau_inv[it.row()].visited)
         {
             if (!_binary)
             {
@@ -358,7 +358,7 @@ void SFSMatrix::partition_refinement(Block& S, Queue& Q, map_queue_iterator& map
         if (Q_it->second < Q_it->first.size())
         {
             queue_iterator Q_new = Q.emplace(Q_it); //create block Q_new left of Q_it
-            for (int j = 0; j < Q_it->second; ++j)
+            for (unsigned int j = 0; j < Q_it->second; ++j)
             {
                 Q_new->first.push_back(*Q_it->first.begin()); //add the first vertex in Q_it to the new block Q_new
                 map_queue[*Q_it->first.begin()] = Q_new;//update map_queue for the vertex removed
@@ -421,7 +421,7 @@ SFSMatrix::data_type SFSMatrix::isEpsilon_Robinson()
         
         for(SpMat::iterator it = _A.begin_col(i); it != _A.end_col(i); ++it)
         {
-            if (it.row() > i)
+            if (it.row() > (unsigned)i)
             {
                 row_i[it.row() - i - 1] = *it;
             }
@@ -429,7 +429,7 @@ SFSMatrix::data_type SFSMatrix::isEpsilon_Robinson()
         
         data_type nominal_value;
         //check if the row_i and row_i_1 are Robinson
-        for (int j = row_i.size()-1; j >= 0; --j)
+        for (unsigned int j = row_i.size(); j-- > 0; /*no step*/)
         {
             nominal_value = row_i[j];
             if (j < row_i.size()-1)
@@ -550,7 +550,7 @@ void SFSMatrix::check_tau()
     //check that the neighborhood of each vertex is ordered for increasing tau
     for (int i=0; i < _n; ++i)
     {
-        int tau = 0;
+        unsigned int tau = 0;
         for(SpMat::iterator it = _A.begin_col(i); it != _A.end_col(i); ++it)
         {
             if (it.row() < tau) {
@@ -596,18 +596,18 @@ bool SFSMatrix::is_Robinson(SpMat& A)
 bool SFSMatrix::is_permutation(IntVector& pi)
 {
     std::vector<bool> perm (pi.size(),false);
-    for (int i = 0; i < pi.size(); ++i) {
+    for (unsigned int i = 0; i < pi.size(); ++i) {
         perm[pi[i]] = true;
     }
     
-    for (int i = 0; i < pi.size(); ++i) {
+    for (unsigned int i = 0; i < pi.size(); ++i) {
         if (!perm[i]) {
             SFSout << "Linear order is not a permutation" << std::endl;
             return false;
         }
     }
     
-    if (pi.size() != _n) {
+    if (pi.size() != (unsigned)_n) {
         SFSout << "permutation has a different size from the problem size"
                << std::endl;
         return false;
@@ -663,7 +663,7 @@ void SFSMatrix::print_permutation (IntVector& pi, string& file)
     {
         assert(is_permutation(pi));
     }
-    for (int i = 0; i < pi.size(); ++i)
+    for (unsigned int i = 0; i < pi.size(); ++i)
     {
         myfile << pi[i] << "\n";
     }
