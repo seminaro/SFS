@@ -35,3 +35,14 @@ BEGIN_RCPP
     return rcpp_result_gen;
 END_RCPP
 }
+
+static const R_CallMethodDef CallEntries[] = {
+    {"SFS_read", (DL_FUNC) &SFS_read, 4},
+    {"SFS_sfs", (DL_FUNC) &SFS_sfs, 5},
+    {NULL, NULL, 0}
+};
+
+RcppExport void R_init_SFS(DllInfo *dll) {
+    R_registerRoutines(dll, NULL, CallEntries, NULL, NULL);
+    R_useDynamicSymbols(dll, FALSE);
+}

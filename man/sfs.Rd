@@ -80,7 +80,8 @@ sfs(matrix, sfs_epsilon = 0, dissimilarity = FALSE, Robinsonian = FALSE, num_swe
 	A <- SFS::read(M)
 	SFS::sfs(A, Robinsonian = TRUE)
 	
-	## invoke SFS reading from file containing 3-columns (row, col, value) entries of an asymmetric non-Robinsonian similarity matrix with 1-based vertices
+	## invoke SFS reading from file containing 3-columns (row, col, value) entries
+        ## of an asymmetric non-Robinsonian similarity matrix with 1-based vertices
 	M <- read.table("examples/list_130.txt")
 	A <- SFS::read(M, symmetric = FALSE)
 	SFS::sfs(A, num_sweeps = 7)

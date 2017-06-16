@@ -2,4 +2,4 @@
 
 exportPattern("^[[:alpha:]]+")
 importFrom(Rcpp,evalCpp)
-useDynLib(SFS)
+useDynLib(SFS, .registration=TRUE)

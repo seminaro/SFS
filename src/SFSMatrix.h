@@ -15,10 +15,10 @@
    GNU General Public License for more details.
    
    You should have received a copy of the GNU General Public License
-   along with Foobar.  If not, see <http://www.gnu.org/licenses/>.
+   along with SFS.  If not, see <http://www.gnu.org/licenses/>.
    
    (C) 2014-2016 Matteo Seminaroti, CWI Amsterdam.
-   R integration (C) 2016 Utz-Uwe Haus, Cray EMEA Research Lab.
+   R integration (C) 2016 Utz-Uwe Haus, Cray EMEA Research Lab, Cray Inc.
 */
 
 // if you want to use SFSMatrix.[h,cpp] outside of the R integration, add
