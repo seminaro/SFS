@@ -78,13 +78,13 @@ sfs(matrix, sfs_epsilon = 0, dissimilarity = FALSE, Robinsonian = FALSE, num_swe
 
 	## invoke SFS reading from file a Robinsonian matrix
 	M <- read.table(system.file("extdata", "list_130.txt", package = "SFS"))
-	A <- SFS::read(M)
+	A <- SFS::read(M, identical_val = TRUE)
 	SFS::sfs(A, Robinsonian = TRUE)
 	
 	## invoke SFS reading from file containing 3-columns (row, col, value) entries
         ## of an asymmetric non-Robinsonian similarity matrix with 1-based vertices
-	M <- read.table("data/list_130.txt")
-	A <- SFS::read(M, symmetric = FALSE)
+	M <- read.table(system.file("extdata", "list_130.txt", package = "SFS"))
+	A <- SFS::read(M, identical_val = TRUE, symmetric = FALSE)
 	SFS::sfs(A, num_sweeps = 7)
   
 }
