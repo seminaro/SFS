@@ -83,7 +83,7 @@ sfs__dist_to_DataFrame(SEXP R_dist, const double zero_eps) {
     // without diagonal elements. Typically rather dense; access via
     // LT_POS(size,col_idx,row_idx) (1-based)
     size_t length = LENGTH(R_dist);
-    size_t n = 1 + (int)sqrt(2*length);
+    size_t n = (size_t)(1.0 + sqrt((float)(2*length)));
     if(length != n*(n-1)/2) {
         throw std::runtime_error("dist object has invalid length");
     }

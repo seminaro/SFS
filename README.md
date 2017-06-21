@@ -3,6 +3,10 @@ Similarity-First Search
 
 Documentation is available for the R functions `SFS::read` and `SFS::sfs`.
 
+Development is happening on [http://github.com:seminaro/SFS.git](github).
+
+SFS is available on CRAN, at [https://cran.r-project.org/package=SFS](https://cran.r-project.org/package=SFS)
+
 -------------------------------------------------------------------------------
 
 # Developer notes #
