@@ -1,0 +1,23 @@
+citation(auto = meta)
+
+bibentry(bibtype = "article",
+         title = paste("Similarity-First Search: ",
+                       "a new algorithm with application to Robinsonian matrix recognition"),
+         author = {
+             personList(person("Monique", "Laurent",
+                               email = "monique.laurent@cwi.nl"),
+                        person("Matteo", "Seminaroti",
+                               email = "matteo.seminaroti@gmail.com"))
+         },
+         year = 2016,
+         journal = "SIAM Journal on Discrete Mathematics (to appear)",
+         url = "https://arxiv.org/pdf/1601.03521.pdf",
+	 note = "arXiv:1601.03521",	
+         textVersion = {
+             paste("Monique Laurent and Matteo Seminaroti. ",
+                   "Similarity-First Search: ",
+                   "a new algorithm with application to Robinsonian matrix.",
+                   "SIAM Journal on Discrete Mathematics (to appear).",
+                   "URL: https://arxiv.org/pdf/1601.03521.pdf.",
+                   sep = "  ")
+             })

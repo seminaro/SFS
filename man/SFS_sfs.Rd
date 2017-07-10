@@ -90,3 +90,8 @@ sfs(matrix, sfs_epsilon = 0, dissimilarity = FALSE, Robinsonian = FALSE, num_swe
 }
 \author{Matteo Seminaroti (SFS) and Utz-Uwe Haus (R wrapping)}
 
+\references{ 
+M. Laurent and M. Seminaroti. Similarity-First Search: a new algorithm with application to Robinsonian matrix recognition. SIAM Journal on Discrete Mathematics (to appear). \emph{arXiv:1601.03521}. 2016.
+    
+M. Seminaroti. Combinatorial Algorithms for the Seriation Problem. \emph{PhD thesis}. School of Economics and Management, Tilburg University, pages 1--209. 2016.
+}
