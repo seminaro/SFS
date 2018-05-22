@@ -2,7 +2,7 @@ citation(auto = meta)
 
 bibentry(bibtype = "article",
          title = paste("Similarity-First Search: ",
-                       "a new algorithm with application to Robinsonian matrix recognition"),
+                       "A New Algorithm with Application to Robinsonian Matrix Recognition"),
          author = {
              personList(person("Monique", "Laurent",
                                email = "monique.laurent@cwi.nl"),
@@ -10,14 +10,27 @@ bibentry(bibtype = "article",
                                email = "matteo.seminaroti@gmail.com"))
          },
          year = 2016,
-         journal = "SIAM Journal on Discrete Mathematics (to appear)",
-         url = "https://arxiv.org/pdf/1601.03521.pdf",
-	 note = "arXiv:1601.03521",	
+         journal = "SIAM Journal on Discrete Mathematics",
+	 colume = "31",
+	 number = "3",
+	 year = "2017",
+	 pages = "1765-1800",
          textVersion = {
              paste("Monique Laurent and Matteo Seminaroti. ",
                    "Similarity-First Search: ",
-                   "a new algorithm with application to Robinsonian matrix.",
-                   "SIAM Journal on Discrete Mathematics (to appear).",
-                   "URL: https://arxiv.org/pdf/1601.03521.pdf.",
+                   "A New Algorithm with Application to Robinsonian Matrix Recognition.",
+                   "SIAM Journal on Discrete Mathematics, 31(3):1765-1800, 2017.",
                    sep = "  ")
              })
+bibentry(bibtype = "phdthesis",
+	author       = { person("Matteo", "Seminaroti")}, 
+	title        = "Combinatorial Algorithms for the Seriation Problem",
+	school       = "Tilburg University",
+	year         = "2016",
+	address      = "CentER, Center for Economic Research",
+	month        = "12",
+	url         = 
+	"https://pure.uvt.nl/portal/en/publications/combinatorial-algorithms-for-the-seriation-problem(06ce98d8-5e2f48d8-8547-5d3530533b5b).html"
+	)
+
+citFooter("The work was performed at Centrum Wiskunde & Informatica (CWI), Amsterdam.")
