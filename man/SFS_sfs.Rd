@@ -24,6 +24,7 @@ sfs(matrix, sfs_epsilon = 0, dissimilarity = FALSE, Robinsonian = FALSE, num_swe
 \examples{
 	## install package in R
  	#install.packages("SFS_0.1.tar.gz")
+	#install.packages("seriation")
  	
  	## load package in R
  	library(SFS)

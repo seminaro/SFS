@@ -8,7 +8,7 @@ using namespace Rcpp;
 
 // read
 Rcpp::DataFrame read(SEXP data, double zero_epsilon, bool symmetric, bool identical_val);
-RcppExport SEXP SFS_read(SEXP dataSEXP, SEXP zero_epsilonSEXP, SEXP symmetricSEXP, SEXP identical_valSEXP) {
+RcppExport SEXP _SFS_read(SEXP dataSEXP, SEXP zero_epsilonSEXP, SEXP symmetricSEXP, SEXP identical_valSEXP) {
 BEGIN_RCPP
     Rcpp::RObject rcpp_result_gen;
     Rcpp::RNGScope rcpp_rngScope_gen;
@@ -22,7 +22,7 @@ END_RCPP
 }
 // sfs
 arma::Row<int> sfs(SEXP matrix, double sfs_epsilon, bool dissimilarity, bool Robinsonian, int num_sweeps);
-RcppExport SEXP SFS_sfs(SEXP matrixSEXP, SEXP sfs_epsilonSEXP, SEXP dissimilaritySEXP, SEXP RobinsonianSEXP, SEXP num_sweepsSEXP) {
+RcppExport SEXP _SFS_sfs(SEXP matrixSEXP, SEXP sfs_epsilonSEXP, SEXP dissimilaritySEXP, SEXP RobinsonianSEXP, SEXP num_sweepsSEXP) {
 BEGIN_RCPP
     Rcpp::RObject rcpp_result_gen;
     Rcpp::RNGScope rcpp_rngScope_gen;
@@ -37,8 +37,8 @@ END_RCPP
 }
 
 static const R_CallMethodDef CallEntries[] = {
-    {"SFS_read", (DL_FUNC) &SFS_read, 4},
-    {"SFS_sfs", (DL_FUNC) &SFS_sfs, 5},
+    {"_SFS_read", (DL_FUNC) &_SFS_read, 4},
+    {"_SFS_sfs", (DL_FUNC) &_SFS_sfs, 5},
     {NULL, NULL, 0}
 };
 

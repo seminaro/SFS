@@ -2,10 +2,10 @@
 # Generator token: 10BE3573-1514-4C36-9D1C-5A225CD40393
 
 read <- function(data, zero_epsilon = 1.0e-200, symmetric = TRUE, identical_val = FALSE) {
-    .Call(SFS_read, data, zero_epsilon, symmetric, identical_val)
+    .Call(`_SFS_read`, data, zero_epsilon, symmetric, identical_val)
 }
 
 sfs <- function(matrix, sfs_epsilon = 0, dissimilarity = FALSE, Robinsonian = FALSE, num_sweeps = 4L) {
-    .Call(SFS_sfs, matrix, sfs_epsilon, dissimilarity, Robinsonian, num_sweeps)
+    .Call(`_SFS_sfs`, matrix, sfs_epsilon, dissimilarity, Robinsonian, num_sweeps)
 }
 
