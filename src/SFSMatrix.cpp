@@ -407,7 +407,7 @@ SFSMatrix::data_type SFSMatrix::isEpsilon_Robinson()
             tau = i;
         }
         else{
-            it--;
+            (void)it--;
             tau = it.row();
         }
         int rmn = std::max(0,tau-i); //rightmost vertex adjacent to vertex _tau_inv[i]
